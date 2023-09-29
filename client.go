@@ -250,10 +250,10 @@ func (fs *Share) newFile(r CreateResponseDecoder, name string) *File {
 	fd := r.FileId().Decode()
 
 	fileStat := &FileStat{
-		CreationTime:   time.Unix(0, r.CreationTime().Nanoseconds()),
-		LastAccessTime: time.Unix(0, r.LastAccessTime().Nanoseconds()),
-		LastWriteTime:  time.Unix(0, r.LastWriteTime().Nanoseconds()),
-		ChangeTime:     time.Unix(0, r.ChangeTime().Nanoseconds()),
+		CreationTime:   r.CreationTime().AsTime(),
+		LastAccessTime: r.LastAccessTime().AsTime(),
+		LastWriteTime:  r.LastWriteTime().AsTime(),
+		ChangeTime:     r.ChangeTime().AsTime(),
 		EndOfFile:      r.EndofFile(),
 		AllocationSize: r.AllocationSize(),
 		FileAttributes: r.FileAttributes(),
@@ -743,8 +743,8 @@ func (fs *Share) Chtimes(name string, atime time.Time, mtime time.Time) error {
 		FileInfoClass:         FileBasicInformation,
 		AdditionalInformation: 0,
 		Input: &FileBasicInformationEncoder{
-			LastAccessTime: NsecToFiletime(atime.UnixNano()),
-			LastWriteTime:  NsecToFiletime(mtime.UnixNano()),
+			LastAccessTime: TimeToFiletime(atime),
+			LastWriteTime:  TimeToFiletime(mtime),
 		},
 	}
 
@@ -1400,10 +1400,10 @@ func (f *File) stat() (os.FileInfo, error) {
 	std := info.StandardInformation()
 
 	return &FileStat{
-		CreationTime:   time.Unix(0, basic.CreationTime().Nanoseconds()),
-		LastAccessTime: time.Unix(0, basic.LastAccessTime().Nanoseconds()),
-		LastWriteTime:  time.Unix(0, basic.LastWriteTime().Nanoseconds()),
-		ChangeTime:     time.Unix(0, basic.ChangeTime().Nanoseconds()),
+		CreationTime:   basic.CreationTime().AsTime(),
+		LastAccessTime: basic.LastAccessTime().AsTime(),
+		LastWriteTime:  basic.LastWriteTime().AsTime(),
+		ChangeTime:     basic.ChangeTime().AsTime(),
 		EndOfFile:      std.EndOfFile(),
 		AllocationSize: std.AllocationSize(),
 		FileAttributes: basic.FileAttributes(),
@@ -1976,10 +1976,10 @@ func (f *File) readdir(pattern string) (fi []os.FileInfo, err error) {
 
 		if name != "." && name != ".." {
 			fi = append(fi, &FileStat{
-				CreationTime:   time.Unix(0, info.CreationTime().Nanoseconds()),
-				LastAccessTime: time.Unix(0, info.LastAccessTime().Nanoseconds()),
-				LastWriteTime:  time.Unix(0, info.LastWriteTime().Nanoseconds()),
-				ChangeTime:     time.Unix(0, info.ChangeTime().Nanoseconds()),
+				CreationTime:   info.CreationTime().AsTime(),
+				LastAccessTime: info.LastAccessTime().AsTime(),
+				LastWriteTime:  info.LastWriteTime().AsTime(),
+				ChangeTime:     info.ChangeTime().AsTime(),
 				EndOfFile:      info.EndOfFile(),
 				AllocationSize: info.AllocationSize(),
 				FileAttributes: info.FileAttributes(),

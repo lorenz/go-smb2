@@ -5,6 +5,7 @@ package smb2
 import (
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Filetime struct {
@@ -38,6 +39,24 @@ func NsecToFiletime(nsec int64) (ft *Filetime) {
 	}
 }
 
+var maxFiletime = time.Unix(910692730085, 477580700) // 30828-09-14
+var minFiletime = time.Unix(-11644473600, 0)         // 1601-01-01
+
+func TimeToFiletime(t time.Time) *Filetime {
+	if t.Before(minFiletime) {
+		t = minFiletime
+	}
+	if t.After(maxFiletime) {
+		t = maxFiletime
+	}
+	ticks := uint64((t.Unix() + 11644473600)) * 10000000
+	ticks += uint64(t.Nanosecond()) / 100
+	return &Filetime{
+		LowDateTime:  uint32(ticks & 0xffffffff),
+		HighDateTime: uint32(ticks >> 32 & 0xffffffff),
+	}
+}
+
 type FiletimeDecoder []byte
 
 func (ft FiletimeDecoder) LowDateTime() uint32 {
@@ -48,11 +67,18 @@ func (ft FiletimeDecoder) HighDateTime() uint32 {
 	return le.Uint32(ft[4:8])
 }
 
+// Note: The return value of this function does not support the whole range of
+// valid Filetimes. Consider ussing AsTime().
 func (ft FiletimeDecoder) Nanoseconds() int64 {
 	nsec := int64(ft.HighDateTime())<<32 + int64(ft.LowDateTime())
 	nsec -= 116444736000000000
 	nsec *= 100
 	return nsec
+}
+
+func (ft FiletimeDecoder) AsTime() time.Time {
+	ticks := uint64(ft.HighDateTime())<<32 + uint64(ft.LowDateTime())
+	return time.Unix(int64((ticks/10000000))-11644473600, int64((ticks%10000000))*100)
 }
 
 func (ft FiletimeDecoder) Decode() *Filetime {
