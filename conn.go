@@ -491,6 +491,7 @@ func (conn *conn) runSender() {
 		case <-conn.wdone:
 			return
 		case pkt := <-conn.write:
+			conn.t.SetWriteDeadline(time.Now().Add(30 * time.Second))
 			_, err := conn.t.Write(pkt)
 
 			conn.werr <- err

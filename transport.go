@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io"
 	"net"
+	"time"
 )
 
 const (
@@ -13,6 +14,7 @@ const (
 
 type transport interface {
 	Write(p []byte) (n int, err error)
+	SetWriteDeadline(t time.Time) error
 	ReadSize() (size int, err error)
 	Read(p []byte) (n int, err error)
 	Close() error
@@ -48,6 +50,10 @@ func (t *directTCP) Write(p []byte) (n int, err error) {
 	}
 
 	return n + 4, nil
+}
+
+func (t *directTCP) SetWriteDeadline(d time.Time) error {
+	return t.conn.SetWriteDeadline(d)
 }
 
 func (t *directTCP) ReadSize() (size int, err error) {
