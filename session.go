@@ -12,6 +12,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"hash"
+	"os"
 
 	"github.com/hirochachacha/go-smb2/internal/crypto/ccm"
 	"github.com/hirochachacha/go-smb2/internal/crypto/cmac"
@@ -189,8 +190,11 @@ func sessionSetup(conn *conn, i Initiator, ctx context.Context) (*session, error
 
 			encryptionKey := kdf(sessionKey, []byte("SMBC2SCipherKey\x00"), s.preauthIntegrityHashValue[:])
 			decryptionKey := kdf(sessionKey, []byte("SMBS2CCipherKey\x00"), s.preauthIntegrityHashValue[:])
-			sess := binary.LittleEndian.AppendUint64(nil, s.sessionId)
-			fmt.Printf("%x,%x\n", sess, sessionKey)
+
+			if os.Getenv("SMB_LOGKEYS") == "1" {
+				sess := binary.LittleEndian.AppendUint64(nil, s.sessionId)
+				fmt.Printf("%x,%x\n", sess, sessionKey)
+			}
 
 			switch s.cipherId {
 			case AES128CCM:
