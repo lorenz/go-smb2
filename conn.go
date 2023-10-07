@@ -580,7 +580,7 @@ func (conn *conn) runReciever() {
 exit:
 	select {
 	case <-conn.rdone:
-		err = nil
+		err = fmt.Errorf("session closed due to: %w", err)
 	default:
 		logger.Println("error:", err)
 	}
