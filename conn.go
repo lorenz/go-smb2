@@ -502,6 +502,8 @@ func (conn *conn) runSender() {
 func (conn *conn) runReciever() {
 	var err error
 
+	pkt := make([]byte, 4096)
+
 	for {
 		n, e := conn.t.ReadSize()
 		if e != nil {
@@ -510,7 +512,11 @@ func (conn *conn) runReciever() {
 			goto exit
 		}
 
-		pkt := make([]byte, n)
+		for cap(pkt) < (n + 16) {
+			pkt = append(pkt[:cap(pkt)], 0)
+		}
+
+		pkt := pkt[:n]
 
 		_, e = conn.t.Read(pkt)
 		if e != nil {
